@@ -1,13 +1,15 @@
 import { SignupController } from "./signup-controller"
 import { AddAccount, addAccountParams } from "@/domain/usecases/add-account"
 import { accountModel } from "@/domain/models/account"
-import { ok } from "@/presentation/helpers/http/http-helpers"
+import { ok, badRequest } from "@/presentation/helpers/http/http-helpers"
+import { MissingParamError } from "@/presentation/errors/missing-param-error"
 
 const mockRequest = {
   body: {
     name: 'any_name',
     email: 'any_email',
-    password: 'any_password'
+    password: 'any_password',
+    passwordConfirmation: 'any_password'
   }
 }
 
@@ -51,6 +53,18 @@ describe('Signup Controller', () => {
       email: 'any_email',
       password: 'any_password',
     })
+  })
+
+  test('Should return 400 if email is not provided', async () => {
+    const { sut } = makeSut()
+    const httpResponse = await sut.handle({
+      body: {
+        name: 'any_name',
+        password: 'any_password',
+        passwordConfirmation: 'any_password'
+      }
+    })
+    expect(httpResponse).toEqual(badRequest(new MissingParamError('email')))
   })
 
   test('Should return an account on success', async () => {
