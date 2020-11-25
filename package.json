@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "test:staged": "npm test -- --findRelatedTests"
   },
   "keywords": [],
   "author": "",
@@ -26,5 +27,8 @@
   },
   "dependencies": {
     "module-alias": "^2.2.2"
+  },
+  "_moduleAliases": {
+    "@": "dist"
   }
 }

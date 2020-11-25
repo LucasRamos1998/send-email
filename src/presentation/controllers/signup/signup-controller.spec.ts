@@ -1,16 +1,27 @@
 import { SignupController } from "./signup-controller"
 import { AddAccount, addAccountParams } from "@/domain/usecases/add-account"
 import { accountModel } from "@/domain/models/account"
+import { ok } from "@/presentation/helpers/http/http-helpers"
+
+const mockRequest = {
+  body: {
+    name: 'any_name',
+    email: 'any_email',
+    password: 'any_password'
+  }
+}
+
+const mockResponse = {
+  id: 'any_id',
+  name: 'any_name',
+  email: 'any_email',
+  password: 'any_password'
+}
 
 const makeAddAccountStub = (): AddAccount => {
   class AddAccountStub implements AddAccount{
     add (account: addAccountParams): Promise<accountModel> {
-      return Promise.resolve({
-        id: 'any_id',
-        name: 'any_name',
-        email: 'any_email',
-        password: 'any_password'
-      })
+      return Promise.resolve(mockResponse)
     }
   }
   return new AddAccountStub()
@@ -31,22 +42,20 @@ const makeSut = (): SutTypes => {
 }
 
 describe('Signup Controller', () => {
-  test('Should call addAccount with correct values', () => {
+  test('Should call addAccount with correct values', async () => {
     const { sut, addAccountStub } = makeSut()
-    const httpRequest = {
-      body: {
-        name: 'any_name',
-        email: 'any_email',
-        password: 'any_password',
-        passwordConfirmation: 'any_password'
-      }
-    }
     const addSpy = jest.spyOn(addAccountStub, 'add')
-    sut.handle(httpRequest)
+    await sut.handle(mockRequest)
     expect(addSpy).toHaveBeenCalledWith({
       name: 'any_name',
       email: 'any_email',
       password: 'any_password',
     })
+  })
+
+  test('Should return an account on success', async () => {
+    const { sut } = makeSut()
+    const httpResponse = await sut.handle(mockRequest)
+    expect(httpResponse).toEqual(ok(mockResponse))
   })
 })
