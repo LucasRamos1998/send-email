@@ -20,7 +20,7 @@ const makeAddAccountRepository = (): AddAccountRepository => {
         id: 'any_id',
         name: 'any_name',
         email: 'any_email',
-        password: 'any_password'
+        password: 'hashed_password'
       })
     }
   }
@@ -51,12 +51,12 @@ describe('DbAddAccount UseCase', () => {
     await sut.add({
       name: 'any_name',
       email: 'any_email',
-      password: 'any_password'
+      password: 'hashed_password'
     })
     expect(addSpy).toHaveBeenCalledWith({
       name: 'any_name',
       email: 'any_email',
-      password: 'any_password'
+      password: 'hashed_password'
     })
   })
 
@@ -69,5 +69,20 @@ describe('DbAddAccount UseCase', () => {
       password: 'any_password'
     })
     expect(encryptSpty).toHaveBeenCalledWith('any_password')
+  })
+
+  test('Should return a account on success', async () => {
+    const { sut } = makeSut()
+    const account = await sut.add({
+      name: 'any_name',
+      email: 'any_email',
+      password: 'any_password'
+    })
+    expect(account).toEqual({
+      id: 'any_id',
+      name: 'any_name',
+      email: 'any_email',
+      password: 'hashed_password'
+    })
   })
 })
