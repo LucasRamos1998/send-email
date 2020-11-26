@@ -1,8 +1,8 @@
 import { SignupController } from "./signup-controller"
 import { AddAccount, addAccountParams } from "@/domain/usecases/add-account"
 import { accountModel } from "@/domain/models/account"
-import { ok, badRequest } from "@/presentation/helpers/http/http-helpers"
-import { MissingParamError, InvalidParamError } from "@/presentation/errors"
+import { ok, badRequest, serverError } from "@/presentation/helpers/http/http-helpers"
+import { MissingParamError, InvalidParamError, ServerError } from "@/presentation/errors"
 
 const mockRequest = {
   body: {
@@ -44,7 +44,7 @@ const makeSut = (): SutTypes => {
 }
 
 describe('Signup Controller', () => {
-  test('Should call addAccount with correct values', async () => {
+  test('Should call AddAccount with correct values', async () => {
     const { sut, addAccountStub } = makeSut()
     const addSpy = jest.spyOn(addAccountStub, 'add')
     await sut.handle(mockRequest)
@@ -78,6 +78,13 @@ describe('Signup Controller', () => {
       }
     })
     expect(httpResponse).toEqual(badRequest(new InvalidParamError('password')))
+  })
+
+  test('Should return 500 if AddAccount throws', async () => {
+    const { sut, addAccountStub } = makeSut()
+    jest.spyOn(addAccountStub, 'add').mockReturnValueOnce(Promise.reject(new Error()))
+    const httpResponse = await sut.handle(mockRequest)
+    expect(httpResponse).toEqual(serverError(new ServerError()))
   })
 
   test('Should return an account on success', async () => {
