@@ -1,4 +1,5 @@
 import { HttpResponse } from '@/presentation/protocols/http'
+import { ServerError } from '@/presentation/errors/server-error'
 
 export const ok = (body: object): HttpResponse => ({
   statusCode: 200,
@@ -8,4 +9,9 @@ export const ok = (body: object): HttpResponse => ({
 export const badRequest = (error: Error): HttpResponse => ({
   statusCode: 400,
   body: error
+})
+
+export const serverError = (error: Error): HttpResponse => ({
+  statusCode: 500,
+  body: new ServerError(error.stack)
 })
