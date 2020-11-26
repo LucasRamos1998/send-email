@@ -78,6 +78,13 @@ describe('DbAddAccount UseCase', () => {
     expect(encryptSpty).toHaveBeenCalledWith('any_password')
   })
 
+  test('Should throw if Hasher throws', async () => {
+    const { sut, hasherStub } = makeSut()
+    jest.spyOn(hasherStub, 'encrypt').mockReturnValueOnce(Promise.reject(new Error()))
+    const promise = sut.add(mockRequest)
+    await expect(promise).rejects.toThrow()
+  })
+
   test('Should return a account on success', async () => {
     const { sut } = makeSut()
     const account = await sut.add(mockRequest)
