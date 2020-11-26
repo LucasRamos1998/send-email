@@ -2,6 +2,16 @@ import { DbAddAccount } from './db-add-account'
 import { AddAccountRepository } from "@/data/protocols/db/account/add-account-repository"
 import { addAccountParams } from "@/domain/usecases/add-account"
 import { accountModel } from "@/domain/models/account"
+import { Hasher } from '@/data/protocols/cryptography/hasher'
+
+const makeHasher = (): Hasher => {
+  class HasherStub implements Hasher {
+    async encrypt (value: string): Promise<string> {
+      return Promise.resolve('hashed_password')
+    }
+  }
+  return new HasherStub()
+}
 
 const makeAddAccountRepository = (): AddAccountRepository => {
   class AddAccountRepositoryStub implements AddAccountRepository {
@@ -20,14 +30,17 @@ const makeAddAccountRepository = (): AddAccountRepository => {
 type SutTypes = {
   sut: DbAddAccount
   addAccountRepositoryStub: AddAccountRepository
+  hasherStub: Hasher
 }
 
 const makeSut = (): SutTypes => {
   const addAccountRepositoryStub = makeAddAccountRepository()
-  const sut = new DbAddAccount(addAccountRepositoryStub)
+  const hasherStub = makeHasher()
+  const sut = new DbAddAccount(addAccountRepositoryStub, hasherStub)
   return {
     sut,
-    addAccountRepositoryStub
+    addAccountRepositoryStub,
+    hasherStub
   }
 }
 
@@ -45,5 +58,16 @@ describe('DbAddAccount UseCase', () => {
       email: 'any_email',
       password: 'any_password'
     })
+  })
+
+  test('Should call Hasher with correct value', async () => {
+    const { sut, hasherStub } = makeSut()
+    const encryptSpty = jest.spyOn(hasherStub, 'encrypt')
+    await sut.add({
+      name: 'any_name',
+      email: 'any_email',
+      password: 'any_password'
+    })
+    expect(encryptSpty).toHaveBeenCalledWith('any_password')
   })
 })
