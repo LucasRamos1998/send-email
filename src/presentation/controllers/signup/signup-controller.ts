@@ -2,7 +2,7 @@ import { Controller } from '@/presentation/protocols/controller'
 import { HttpRequest, HttpResponse } from '@/presentation/protocols/http'
 import { AddAccount } from '@/domain/usecases/add-account'
 import { ok, badRequest } from '@/presentation/helpers/http/http-helpers'
-import { MissingParamError } from '@/presentation/errors/missing-param-error'
+import { MissingParamError, InvalidParamError } from '@/presentation/errors'
 
 export class SignupController implements Controller {
   constructor (private readonly addAccount: AddAccount) {}
@@ -15,8 +15,9 @@ export class SignupController implements Controller {
         return badRequest(new MissingParamError(field))
       }
     }
+    const { name, email, password, passwordConfirmation } = httpRequest.body
 
-    const { name, email, password } = httpRequest.body
+    if (password !== passwordConfirmation) return badRequest(new InvalidParamError('password'))
 
     const account = await this.addAccount.add({
       name,
