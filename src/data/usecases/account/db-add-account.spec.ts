@@ -20,7 +20,7 @@ const mockResponse = {
 
 const makeHasher = (): Hasher => {
   class HasherStub implements Hasher {
-    async encrypt (value: string): Promise<string> {
+    async hash (value: string): Promise<string> {
       return Promise.resolve('hashed_password')
     }
   }
@@ -86,14 +86,14 @@ describe('DbAddAccount UseCase', () => {
 
   test('Should call Hasher with correct value', async () => {
     const { sut, hasherStub } = makeSut()
-    const encryptSpy = jest.spyOn(hasherStub, 'encrypt')
+    const hashSpy = jest.spyOn(hasherStub, 'hash')
     await sut.add(mockRequest)
-    expect(encryptSpy).toHaveBeenCalledWith('any_password')
+    expect(hashSpy).toHaveBeenCalledWith('any_password')
   })
 
   test('Should throw if Hasher throws', async () => {
     const { sut, hasherStub } = makeSut()
-    jest.spyOn(hasherStub, 'encrypt').mockReturnValueOnce(Promise.reject(new Error()))
+    jest.spyOn(hasherStub, 'hash').mockReturnValueOnce(Promise.reject(new Error()))
     const promise = sut.add(mockRequest)
     await expect(promise).rejects.toThrow()
   })
