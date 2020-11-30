@@ -67,6 +67,13 @@ describe('Account Sequelize Repositoy', () => {
       const account = await sut.loadByEmail('other_email@mail.com')
       expect(account).toBeNull()
     })
+
+    test('Should throws if loadByEmail throws', async () => {
+      const sut = new AccountSequelizeRepository()
+      jest.spyOn(sut, 'loadByEmail').mockReturnValueOnce(Promise.reject(new Error()))
+      const promise = sut.loadByEmail('any_email@mail.com')
+      await expect(promise).rejects.toThrow()
+    })
   })
   
 })
