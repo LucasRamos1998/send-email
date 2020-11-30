@@ -55,5 +55,18 @@ describe('Account Sequelize Repositoy', () => {
       expect(account.email).toBe('any_email@mail.com')
     })
 
-  })  
+    test('Should return null if email provided do not exist', async () => {
+      await Accounts.create({
+        id: 'any_id',
+        name: 'any_name',
+        email: 'any_email@mail.com',
+        password: 'any_password'
+      })
+
+      const sut = new AccountSequelizeRepository()
+      const account = await sut.loadByEmail('other_email@mail.com')
+      expect(account).toBeNull()
+    })
+  })
+  
 })
