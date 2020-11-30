@@ -26,4 +26,15 @@ describe('Account Sequelize Repositoy', () => {
     expect(newAccount.email).toBe('any_email@mail.com')
   })
 
+  test('Should throws if add throws', async () => {
+    const sut = new AccountSequelizeRepository()
+    jest.spyOn(sut, 'add').mockReturnValueOnce(Promise.reject(new Error()))
+    const promise = sut.add({
+      name: 'any_name',
+      email: 'any_email@mail.com',
+      password: 'any_password'
+    })
+    await expect(promise).rejects.toThrow()
+  })
+  
 })
