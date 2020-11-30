@@ -1,6 +1,6 @@
 import { AccountSequelizeRepository } from './account-sequelize-repository'
-import { Accounts } from '../models'
-import connection from '../database'
+import { Accounts } from '../sequelize/models'
+import connection from '../sequelize/database'
 
 describe('Account Sequelize Repositoy', () => {
   beforeAll(() => {

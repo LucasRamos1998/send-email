@@ -1,4 +1,4 @@
-import { Accounts } from '../models'
+import { Accounts } from '../sequelize/models'
 import { AddAccountRepository } from "@/data/protocols/db/account/add-account-repository"
 import { LoadAccountByEmailRepository } from '@/data/protocols/db/account/load-account-by-email-repository'
 import { addAccountParams } from "@/domain/usecases/add-account"
