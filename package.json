@@ -48,6 +48,6 @@
     "uuid4": "^2.0.2"
   },
   "_moduleAliases": {
-    "@": "dist"
+    "@": "src"
   }
 }
