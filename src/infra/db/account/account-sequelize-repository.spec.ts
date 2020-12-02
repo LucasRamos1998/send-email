@@ -3,7 +3,8 @@ import { Accounts } from '../sequelize/models'
 import connection from '../sequelize/database'
 
 describe('Account Sequelize Repositoy', () => {
-  beforeAll(() => {
+  beforeAll(async() => {
+    await Accounts.truncate()
     Accounts.init(connection)
   })
   beforeEach(async () => {
