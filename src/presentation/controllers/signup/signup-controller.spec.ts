@@ -1,8 +1,10 @@
 import { SignupController } from "./signup-controller"
+import { ok, badRequest, serverError, forbidden } from "@/presentation/helpers/http/http-helpers"
+import { MissingParamError, ServerError, EmailInUseError } from "@/presentation/errors"
+import { Validation } from "@/presentation/protocols"
 import { AddAccount, addAccountParams } from "@/domain/usecases/add-account"
 import { accountModel } from "@/domain/models/account"
-import { ok, badRequest, serverError, forbidden } from "@/presentation/helpers/http/http-helpers"
-import { MissingParamError, InvalidParamError, ServerError, EmailInUseError } from "@/presentation/errors"
+
 
 const mockRequest = {
   body: {
@@ -29,17 +31,29 @@ const makeAddAccountStub = (): AddAccount => {
   return new AddAccountStub()
 }
 
+const makeValidationStub = (): Validation => {
+  class ValidationStub implements Validation {
+    validate (input: any): Error {
+      return null
+    }
+  }
+  return new ValidationStub()
+}
+
 type SutTypes = {
   sut: SignupController
   addAccountStub: AddAccount
+  validationStub: Validation
 }
 
 const makeSut = (): SutTypes => {
     const addAccountStub = makeAddAccountStub()
-    const sut = new SignupController(addAccountStub)
+    const validationStub = makeValidationStub()
+    const sut = new SignupController(addAccountStub, validationStub)
     return {
       sut,
-      addAccountStub
+      addAccountStub,
+      validationStub
     }
 }
 
@@ -55,29 +69,23 @@ describe('Signup Controller', () => {
     })
   })
 
-  test('Should return 400 if email is not provided', async () => {
-    const { sut } = makeSut()
-    const httpResponse = await sut.handle({
-      body: {
-        name: 'any_name',
-        password: 'any_password',
-        passwordConfirmation: 'any_password'
-      }
+  test('Should call validation with correct values', async () => {
+    const { sut, validationStub } = makeSut()
+    const validateSpy = jest.spyOn(validationStub, 'validate')
+    await sut.handle(mockRequest)
+    expect(validateSpy).toHaveBeenCalledWith({
+      name: 'any_name',
+      email: 'any_email',
+      password: 'any_password',
+      passwordConfirmation: 'any_password'
     })
-    expect(httpResponse).toEqual(badRequest(new MissingParamError('email')))
   })
 
-  test('Should return 400 if password is different to passwordConfirmation', async () => {
-    const { sut } = makeSut()
-    const httpResponse = await sut.handle({
-      body: {
-        email: 'any_email',
-        name: 'any_name',
-        password: 'any_password',
-        passwordConfirmation: 'other_password'
-      }
-    })
-    expect(httpResponse).toEqual(badRequest(new InvalidParamError('password')))
+  test('Should return 400 if validation returns an error', async () => {
+    const { sut, validationStub } = makeSut()
+    jest.spyOn(validationStub, 'validate').mockReturnValueOnce(new MissingParamError('any_field'))
+    const httpResponse =  await sut.handle(mockRequest)
+    expect(httpResponse).toEqual(badRequest(new MissingParamError('any_field')))
   })
 
   test('Should return 400 if AddAccount returns null', async () => {

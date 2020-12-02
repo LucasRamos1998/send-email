@@ -8,8 +8,8 @@ describe('Signup Route', () => {
     Accounts.init(connection)
   })
 
-  beforeEach(() => {
-    Accounts.truncate()
+  beforeEach(async () => {
+    await Accounts.truncate()
   })
   
   afterAll(() => {

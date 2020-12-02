@@ -6,8 +6,8 @@ describe('Account Sequelize Repositoy', () => {
   beforeAll(() => {
     Accounts.init(connection)
   })
-  beforeEach(() => {
-    Accounts.truncate()
+  beforeEach(async () => {
+    await Accounts.truncate()
   })
   afterAll(() => {
     connection.close()
