@@ -80,5 +80,12 @@ describe('Db Authentication', () => {
     const response = await sut.auth('any_email@mail.com', 'any_password')
     expect(response).toBeNull()
   })
+
+  test('Should throw if HashCompare throws', async () => {
+    const { sut, hashCompareStub } = makeSut()
+    jest.spyOn(hashCompareStub, 'compare').mockReturnValueOnce(Promise.reject(new Error()))
+    const promise = sut.auth('any_email@mail.com', 'any_password')
+    await expect(promise).rejects.toThrow()
+  })
  
 })
