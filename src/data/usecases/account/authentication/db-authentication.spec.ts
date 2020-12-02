@@ -9,15 +9,32 @@ const mockResponse = {
   password: 'any_password'
 }
 
+const makeLoadAccountByEmailRepository = (): LoadAccountByEmailRepository => {
+  class LoadAccountByEmailRepositoryStub implements LoadAccountByEmailRepository {
+    loadByEmail (email: string): Promise <accountModel> {
+      return Promise.resolve(mockResponse)
+    }
+  }
+  return new LoadAccountByEmailRepositoryStub()
+}
+
+type SutTypes = {
+  sut: DbAuthentication
+  loadAccountByEmailRepositoryStub: LoadAccountByEmailRepository
+}
+
+const makeSut = (): SutTypes => {
+  const loadAccountByEmailRepositoryStub = makeLoadAccountByEmailRepository()
+  const sut = new DbAuthentication(loadAccountByEmailRepositoryStub)
+  return {
+    sut,
+    loadAccountByEmailRepositoryStub
+  }
+}
+
 describe('Db Authentication', () => {
   test('Should call LoadAccountByEmailRepository with correct value', () => {
-    class LoadAccountByEmailRepositoryStub implements LoadAccountByEmailRepository {
-      loadByEmail (email: string): Promise <accountModel> {
-        return Promise.resolve(mockResponse)
-      }
-    }
-    const loadAccountByEmailRepositoryStub = new LoadAccountByEmailRepositoryStub()
-    const sut = new DbAuthentication(loadAccountByEmailRepositoryStub)
+    const { sut, loadAccountByEmailRepositoryStub } = makeSut()
     const loadByEmailSpy = jest.spyOn(loadAccountByEmailRepositoryStub, 'loadByEmail')
     sut.auth('any_email@mail.com', 'any_password')
     expect(loadByEmailSpy).toHaveBeenCalledWith('any_email@mail.com')
