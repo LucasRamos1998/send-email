@@ -1,7 +1,9 @@
 import { LoginController } from './login-controller'
 import { Authentication } from "@/domain/usecases/authentication"
 import { AuthenticationModel } from "@/domain/models/authentication"
-import { ok } from '@/presentation/helpers/http/http-helpers'
+import { ok, badRequest } from '@/presentation/helpers/http/http-helpers'
+import { Validation } from '@/presentation/protocols'
+import { MissingParamError } from '@/presentation/errors'
 
 const mockRequest = {
   body: {
@@ -23,17 +25,29 @@ const makeAuthentication = (): Authentication => {
   return new AuthenticationStub()
 }
 
+const makeValidation = (): Validation => {
+  class ValidationStub implements Validation {
+    validate (input: any): Error {
+      return null
+    }
+  }
+  return new ValidationStub()
+}
+
 type SutTypes = {
   sut: LoginController
   authenticationStub: Authentication
+  validationStub: Validation
 }
 
 const makeSut = (): SutTypes => {
   const authenticationStub = makeAuthentication()
-  const sut = new LoginController(authenticationStub)
+  const validationStub = makeValidation()
+  const sut = new LoginController(authenticationStub, validationStub)
   return {
     sut,
-    authenticationStub
+    authenticationStub,
+    validationStub
   }
 }
 
@@ -43,6 +57,13 @@ describe('Login Controller', () => {
     const authSpy = jest.spyOn(authenticationStub, 'auth')
     await sut.handle(mockRequest)
     expect(authSpy).toHaveBeenCalledWith('any_email@mail.com', 'any_password')
+  })
+
+  test('Should return 400 if Validation returns an error', async () => {
+    const { sut, validationStub } = makeSut()
+    jest.spyOn(validationStub, 'validate').mockReturnValueOnce(new MissingParamError('any_field'))
+    const httpReponse = await sut.handle(mockRequest)
+    expect(httpReponse).toEqual(badRequest(new MissingParamError('any_field')))
   })
 
   test('Should return an AuthenticationModel if Authentication succeeds', async () => {
