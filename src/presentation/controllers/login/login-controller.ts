@@ -1,6 +1,6 @@
 import { Controller, HttpRequest, HttpResponse, Validation } from "@/presentation/protocols";
 import { Authentication } from "@/domain/usecases/authentication";
-import { ok, badRequest } from "@/presentation/helpers/http/http-helpers";
+import { ok, badRequest, unauthorized } from "@/presentation/helpers/http/http-helpers";
 
 export class LoginController implements Controller {
   constructor (
@@ -13,7 +13,9 @@ export class LoginController implements Controller {
     if (error) return badRequest(error)
     
     const { email, password } = httpRequest.body
-    const authenticationModel = await this.authentication.auth(email, password)
-    return ok(authenticationModel)
+    const account = await this.authentication.auth(email, password)
+    if (!account) return unauthorized()
+    
+    return ok(account)
   }
 }
