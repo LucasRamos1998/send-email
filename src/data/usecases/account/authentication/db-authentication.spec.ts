@@ -14,7 +14,7 @@ const mockResponse = {
 const makeEncrypter = (): Encrypter => {
   class EncrypterStub implements Encrypter {
     async encrypt (value: string): Promise<string> {
-      return Promise.resolve('encrypted_value')
+      return Promise.resolve('any_token')
     }
   }
   return new EncrypterStub()
@@ -113,6 +113,16 @@ describe('Db Authentication', () => {
     jest.spyOn(encrypterStub, 'encrypt').mockReturnValueOnce(Promise.reject(new Error()))
     const promise = sut.auth('any_email@mail.com', 'any_password')
     await expect(promise).rejects.toThrow()
+  })
+
+  test('Should return AuthenticationModel on success', async () => {
+    const { sut } = makeSut()
+    const repoonse = await sut.auth('any_email@mail.com', 'any_password')
+    expect(repoonse).toEqual({
+      id: 'any_id',
+      name: 'any_name',
+      token: 'any_token'
+    })
   })
  
 })
