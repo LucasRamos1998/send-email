@@ -19,6 +19,11 @@ export class DbAuthentication implements Authentication {
 
     if (!isValid) return null
 
-    await this.encrypter.encrypt(account.id)
+    const token = await this.encrypter.encrypt(account.id)
+    return {
+      id: account.id,
+      name: account.name,
+      token
+    }
   }
 }
