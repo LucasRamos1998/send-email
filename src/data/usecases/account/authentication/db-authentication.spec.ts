@@ -2,12 +2,22 @@ import { DbAuthentication } from './db-authentication'
 import { LoadAccountByEmailRepository } from "@/data/protocols/db/account/load-account-by-email-repository"
 import { accountModel } from "@/domain/models/account"
 import { HashCompare } from '@/data/protocols/cryptography/hash-compare'
+import { Encrypter } from '@/data/protocols/cryptography/encrypter'
 
 const mockResponse = {
   id: 'any_id',
   name: 'any_name',
   email: 'any_email',
   password: 'any_password'
+}
+
+const makeEncrypter = (): Encrypter => {
+  class EncrypterStub implements Encrypter {
+    async encrypt (value: string): Promise<string> {
+      return Promise.resolve('encrypted_value')
+    }
+  }
+  return new EncrypterStub()
 }
 
 const makeHashCompare = (): HashCompare => {
@@ -32,16 +42,19 @@ type SutTypes = {
   sut: DbAuthentication
   loadAccountByEmailRepositoryStub: LoadAccountByEmailRepository
   hashCompareStub: HashCompare
+  encrypterStub: Encrypter
 }
 
 const makeSut = (): SutTypes => {
   const loadAccountByEmailRepositoryStub = makeLoadAccountByEmailRepository()
   const hashCompareStub = makeHashCompare()
-  const sut = new DbAuthentication(loadAccountByEmailRepositoryStub, hashCompareStub)
+  const encrypterStub = makeEncrypter()
+  const sut = new DbAuthentication(loadAccountByEmailRepositoryStub, hashCompareStub, encrypterStub)
   return {
     sut,
     loadAccountByEmailRepositoryStub,
-    hashCompareStub
+    hashCompareStub,
+    encrypterStub
   }
 }
 
@@ -86,6 +99,13 @@ describe('Db Authentication', () => {
     jest.spyOn(hashCompareStub, 'compare').mockReturnValueOnce(Promise.reject(new Error()))
     const promise = sut.auth('any_email@mail.com', 'any_password')
     await expect(promise).rejects.toThrow()
+  })
+
+  test('Should call Encrypter with correct value', async () => {
+    const { sut, encrypterStub } = makeSut()
+    const encryptSpy = jest.spyOn(encrypterStub, 'encrypt')
+    await sut.auth('any_email@mail.com', 'any_password')
+    expect(encryptSpy).toHaveBeenCalledWith('any_id')
   })
  
 })
